@@ -2,6 +2,11 @@ import numpy as np
 import pygame
 import random
 
+# Инициализация Pygame и модуля для работы с звуком
+pygame.init()
+pygame.mixer.init()  # Инициализация модуля для работы с аудио
+success_sound = pygame.mixer.Sound('success.mp3')
+
 # Параметры лабиринта и обучения
 width, height = 20, 20  # Размеры лабиринта 20x20
 learning_rate = 0.1
@@ -20,7 +25,7 @@ maze = np.array([
     [1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0],
     [0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1],
     [0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0],
-    [0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0],
+    [0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0], 
     [0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0],
     [0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0],
     [0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
@@ -66,11 +71,11 @@ pygame.display.set_caption("Обучение ИИ в лабиринте")
 
 # Цвета для визуализации
 colors = {
-    "path": (255, 255, 255),    # Белый цвет для пути
-    "wall": (70, 70, 70),      # Коричневый цвет для стен
-    "start": (0, 255, 0),       # Зеленый цвет для старта
-    "end": (255, 0, 0),         # Красный цвет для выхода
-    "agent": (0, 0, 255)        # Синий цвет для агента
+    "path": (255, 255, 255),
+    "wall": (70, 70, 70),
+    "start": (0, 255, 0),
+    "end": (255, 0, 0),
+    "agent": (0, 0, 255)
 }
 
 # Функция для отрисовки лабиринта и агента
@@ -103,7 +108,7 @@ def draw_maze(agent_position, episode, steps):
     # Отображаем эпизод и количество шагов
     font = pygame.font.Font(None, 36)
     text = font.render(f"Episode: {episode}  Steps: {steps}", True, (0, 0, 0))
-    screen.blit(text, (10, height * cell_size - 40))
+    screen.blit(text, (125, height * cell_size - 20))
 
     pygame.display.flip()
 
@@ -111,7 +116,11 @@ def draw_maze(agent_position, episode, steps):
 for episode in range(1000):  # Количество эпизодов обучения
     state = start
     steps = 0
-    for step in range(500):  # Ограничение на количество шагов
+    for step in range(300):  # Ограничение на количество шагов
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
         action = choose_action(state)
         next_state = (state[0] + actions[action][0], state[1] + actions[action][1])
 
@@ -139,6 +148,7 @@ for episode in range(1000):  # Количество эпизодов обуче�
         # Если агент достиг выхода, выходим из цикла
         if state == end:
             print(f"Agent reached the exit in episode {episode}!")
+            success_sound.play()
             break
 
     # Уменьшаем epsilon после каждого эпизода
@@ -146,8 +156,17 @@ for episode in range(1000):  # Количество эпизодов обуче�
 
 # После обучения: агент идет по лабиринту, следуя обученной стратегии
 while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
     state = start
+
     while state != end:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
         action = choose_action(state)
         next_state = (state[0] + actions[action][0], state[1] + actions[action][1])
 
@@ -161,6 +180,7 @@ while True:
 
     # После достижения выхода, агент продолжит до следующего цикла
     print("Agent reached the exit!")
+    success_sound.play()
 
 # Завершаем Pygame
 pygame.quit()
